@@ -341,7 +341,14 @@ class LineupOptimizer(object):
         variables_dict = {v: k for k, v in players_dict.items()}
         constraints = [constraint(self, params) for constraint in rules]
         for constraint in constraints:
-            constraint.apply(base_solver, players_dict)
+            if self._settings.site == Site.FANDUEL and self._settings.sport == Sport.BASEBALL and isinstance(constraint, MaxFromOneTeamRule):
+                players_dict_copy = players_dict.copy()
+                for player in list(players_dict_copy.keys()):
+                    if player.positions[0] == 'P':
+                        del players_dict_copy[player]
+                constraint.apply(base_solver, players_dict_copy)
+            else:
+                constraint.apply(base_solver, players_dict)
         previous_lineup = None
         for _ in range(n):
             solver = base_solver.copy()
